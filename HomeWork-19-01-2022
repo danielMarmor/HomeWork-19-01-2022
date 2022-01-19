@@ -1,0 +1,38 @@
+drop function sp_get_calc;
+create or replace function sp_get_calc(num1 double precision, num2 double precision
+									  ,expression text)
+returns double precision
+language plpgsql AS
+	$$
+		declare result double precision := 0;
+		begin 		
+			if expression = '+' then
+				return num1 + num2;
+			elseif expression = '-' then
+				return num1 - num2;
+			elseif expression = '*' then
+				return num1 * num2;
+			else 
+				return num1 / num2;		
+			end if;
+		end;
+	$$;
+	
+select * from sp_get_calc(3, 4, '+');
+
+
+create or replace function sp_get_calc_case(num1 double precision, num2 double precision
+									  ,expression text)
+returns double precision
+language plpgsql AS
+	$$
+		begin
+		return (case when expression = '+' then num1 +num2
+			   		 when expression = '-' then num1 +num2
+					 when expression = '*' then num1 +num2
+					 else num1 /num2 end);
+			   
+		end;
+	$$;
+	
+select * from sp_get_calc_case(3, 4, '+');
