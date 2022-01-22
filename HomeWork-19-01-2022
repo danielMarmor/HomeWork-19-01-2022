@@ -148,3 +148,23 @@ $$
 $$;
 
 select * from sp_populate(50);
+
+--# 6
+drop FUNCTION sp_count;
+CREATE OR REPLACE FUNCTION public.sp_count(_selected_lottery_num int)	
+returns bigint
+language plpgsql as
+$$
+	declare num_repeats bigint :=0;
+	begin
+	   select count(*) 
+	   into num_repeats
+	   from lottery lott
+	   group by lott.lottery_number
+	   having lott.lottery_number = _selected_lottery_num;
+	   return num_repeats;
+	end;
+$$;
+
+--select count(*) from lottery where lottery_number = 5;
+select * from sp_count(9)
