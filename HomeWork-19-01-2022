@@ -104,3 +104,24 @@ $$;
 
 call sp_delete_movies_if_exists(5);
 
+-- # 4
+
+CREATE or replace function sp_populate_grades()
+returns TABLE(class_id bigint, student_id bigint, grade double precision, min_grade double precision, different double precision)
+language plpgsql AS
+    $$
+		begin
+			return QUERY
+			select 
+			grd.class_id class_id,
+			grd.student_id student_id,
+			grd.grade grade,
+			min(grd.grade) over(partition by grd.class_id) min_grade,
+			grd.grade -(min(grd.grade) over(partition by grd.class_id)) different  
+			from grades grd
+			order by grd.class_id asc,
+			grd.student_id asc;
+		end;
+	$$;
+	
+select * from sp_populate_grades()
