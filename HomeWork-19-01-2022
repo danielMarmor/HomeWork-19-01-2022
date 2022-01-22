@@ -125,3 +125,26 @@ language plpgsql AS
 	$$;
 	
 select * from sp_populate_grades()
+
+-- # 5
+CREATE OR REPLACE FUNCTION public.sp_populate(
+	_amount_to_lottery bigint)
+returns bigint
+
+language plpgsql as 
+$$
+	declare counter int := 0;
+	declare current_draw int := 0;
+	begin	
+		for i in 1.._amount_to_lottery
+			loop	
+				current_draw := round(random() * 10);
+				insert into lottery(id, lottery_number)
+				values (i, current_draw);		
+				counter := counter +1;	
+			end loop;
+	return counter;
+	end;
+$$;
+
+select * from sp_populate(50);
