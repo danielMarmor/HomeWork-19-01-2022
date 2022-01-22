@@ -1,3 +1,4 @@
+--# 1
 CREATE OR REPLACE FUNCTION public.sp_get_calc(
 	num1 double precision,
 	num2 double precision,
@@ -45,7 +46,7 @@ select * from sp_get_calc(3, 0, '/')
 
 
 
-
+--# 2
 -- FUNCTION: public.sp_get_calc_case(double precision, double precision, text)
 
 -- DROP FUNCTION IF EXISTS public.sp_get_calc_case(double precision, double precision, text);
@@ -75,4 +76,31 @@ ALTER FUNCTION public.sp_get_calc_case(double precision, double precision, text)
     OWNER TO postgres;
 	
 select * from sp_get_calc_case(3, 4, '!')
+
+--# 3
+drop PROCEDURE public.sp_delete_movies_if_exists;
+CREATE OR REPLACE PROCEDURE public.sp_delete_movies_if_exists(
+	_movie_id bigint)
+    LANGUAGE 'plpgsql'
+AS $$
+		declare movie_exsists boolean = 0;
+		begin
+			select 1 into movie_exsists
+			from movies mv
+			where mv.id =_movie_id;
+			if not found then
+				raise NOTICE 'No Movie Found!';
+			else
+				begin
+					delete from movies mv
+					where mv.id =_movie_id;		
+	  		    	raise NOTICE 'Commited!';
+				end;
+			end if;		
+			   
+		end;
+	
+$$;
+
+call sp_delete_movies_if_exists(5);
 
