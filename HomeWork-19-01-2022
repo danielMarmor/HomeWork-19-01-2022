@@ -1,9 +1,12 @@
-drop function sp_get_calc;
-create or replace function sp_get_calc(num1 double precision, num2 double precision
-									  ,expression text)
-returns double precision
-language plpgsql AS
-	$$
+CREATE OR REPLACE FUNCTION public.sp_get_calc(
+	num1 double precision,
+	num2 double precision,
+	expression text)
+    RETURNS double precision
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
 		declare result double precision := 0;
 		begin 		
 			if expression = '+' then
@@ -12,27 +15,64 @@ language plpgsql AS
 				return num1 - num2;
 			elseif expression = '*' then
 				return num1 * num2;
-			else 
-				return num1 / num2;		
+			elseif expression = '/' then
+				begin
+					if num2 = 0 then
+						raise exception 'Cannot Divide by zero!';
+					end if;
+					return num1 / num2;	
+				end;
+			elseif expression = '^' then
+				return pow(num1, num2);
+			else
+				begin
+					if num2 = 0 then
+						raise exception 'Cannot Root by zero!';
+					end if;
+					return pow(num1, (1/num2));	
+				end;
+			   
 			end if;
 		end;
-	$$;
 	
-select * from sp_get_calc(3, 4, '+');
+$BODY$;
+
+ALTER FUNCTION public.sp_get_calc(double precision, double precision, text)
+    OWNER TO postgres;
 
 
-create or replace function sp_get_calc_case(num1 double precision, num2 double precision
-									  ,expression text)
-returns double precision
-language plpgsql AS
-	$$
+select * from sp_get_calc(3, 0, '/')
+
+
+
+
+-- FUNCTION: public.sp_get_calc_case(double precision, double precision, text)
+
+-- DROP FUNCTION IF EXISTS public.sp_get_calc_case(double precision, double precision, text);
+
+CREATE OR REPLACE FUNCTION public.sp_get_calc_case(
+	num1 double precision,
+	num2 double precision,
+	expression text)
+    RETURNS double precision
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
 		begin
 		return (case when expression = '+' then num1 +num2
-			   		 when expression = '-' then num1 +num2
-					 when expression = '*' then num1 +num2
-					 else num1 /num2 end);
+			   		 when expression = '-' then num1 -num2
+					 when expression = '*' then num1 *num2
+					 when expression = '/' then num1 /num2
+				     when expression = '^' then pow(num1, num2)
+					 else pow(num1 , 1/num2) end);
 			   
 		end;
-	$$;
 	
-select * from sp_get_calc_case(3, 4, '+');
+$BODY$;
+
+ALTER FUNCTION public.sp_get_calc_case(double precision, double precision, text)
+    OWNER TO postgres;
+	
+select * from sp_get_calc_case(3, 4, '!')
+
